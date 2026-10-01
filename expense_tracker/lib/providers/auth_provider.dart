@@ -49,6 +49,25 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> signInAnonymously() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await _authService.signInAnonymously();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on Exception catch (e) {
+      _isLoading = false;
+      final match = RegExp(r'\(([^)]+)\)').firstMatch(e.toString());
+      final errorCode = match?.group(1) ?? 'unknown';
+      _error = _authService.getErrorMessage(errorCode);
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     await _authService.signOut();
     notifyListeners();

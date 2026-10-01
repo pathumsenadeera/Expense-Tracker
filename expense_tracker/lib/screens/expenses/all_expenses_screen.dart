@@ -30,112 +30,143 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
     final grouped = provider.groupedByDate;
     final total = provider.totalFiltered;
 
+    final bgColor = isDark ? AppTheme.darkBg : AppTheme.lightBg;
+    final cardColor = isDark ? AppTheme.darkCard : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
+    final subColor =
+        isDark ? const Color(0xFF888888) : const Color(0xFF999999);
+
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text('All Expenses'),
+        backgroundColor: bgColor,
+        title: Text('Search',
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w700)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: textColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
+        elevation: 0,
       ),
       body: Column(
         children: [
-          // Summary Card
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryGreen,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('TOTAL SPENT',
-                          style: TextStyle(
-                              color: Colors.white60,
-                              fontSize: 11,
-                              letterSpacing: 1)),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Rs ${NumberFormat('#,##0.##').format(total)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${provider.filteredExpenses.length} transaction${provider.filteredExpenses.length != 1 ? 's' : ''}',
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-                // Month selector
-                _MonthChip(filter: provider.filter, provider: provider),
-              ],
-            ),
-          ),
-
-          // Search
+          // ── Summary strip ────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: provider.setSearchQuery,
-              decoration: InputDecoration(
-                hintText: 'Search expenses...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          provider.setSearchQuery('');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCard : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? AppTheme.darkBorder : Colors.grey.shade100,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('TOTAL SPENT',
+                            style: TextStyle(
+                                color: subColor,
+                                fontSize: 11,
+                                letterSpacing: 1,
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$ ${NumberFormat('#,##0.00').format(total)}',
+                          style: TextStyle(
+                              color: textColor,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800),
+                        ),
+                        Text(
+                          '${provider.filteredExpenses.length} transaction${provider.filteredExpenses.length != 1 ? 's' : ''}',
+                          style:
+                              TextStyle(color: subColor, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _FilterChip(provider: provider),
+                ],
               ),
             ),
           ),
 
-          // Category filter chips
+          // ── Search bar ───────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? AppTheme.darkBorder : Colors.grey.shade200,
+                ),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: provider.setSearchQuery,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  hintText: 'Search expenses...',
+                  hintStyle: TextStyle(color: subColor),
+                  prefixIcon: Icon(Icons.search, color: subColor, size: 20),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: subColor, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            provider.setSearchQuery('');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  filled: false,
+                ),
+              ),
+            ),
+          ),
+
+          // ── Category filter chips ────────────────────────────────
           SizedBox(
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _CategoryChip(
+                _CatChip(
                   label: 'All',
                   isSelected: provider.categoryFilter == null,
                   onTap: () => provider.setCategoryFilter(null),
+                  isDark: isDark,
                 ),
-                ...ExpenseCategory.values.map((cat) => _CategoryChip(
+                ...ExpenseCategory.values.map((cat) => _CatChip(
                       label: cat.label,
                       emoji: cat.emoji,
                       isSelected: provider.categoryFilter == cat,
                       onTap: () => provider.setCategoryFilter(
                           provider.categoryFilter == cat ? null : cat),
+                      isDark: isDark,
                     )),
               ],
             ),
           ),
           const SizedBox(height: 8),
 
-          // List
+          // ── Transactions list ────────────────────────────────────
           Expanded(
             child: grouped.isEmpty
-                ? _EmptyState()
+                ? _EmptyState(subColor: subColor)
                 : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                    padding:
+                        const EdgeInsets.fromLTRB(16, 4, 16, 100),
                     itemCount: grouped.length,
                     itemBuilder: (ctx, index) {
                       final date = grouped.keys.elementAt(index);
@@ -146,42 +177,25 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 10),
                             child: Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primaryGreen,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    DateFormat('EEE').format(date).toUpperCase(),
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
                                 Text(
-                                  DateFormat('MMM d, yyyy').format(date),
+                                  DateFormat('EEE, MMM d, yyyy')
+                                      .format(date),
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? Colors.white70
-                                        : AppTheme.textPrimary,
+                                    fontSize: 13,
+                                    color: subColor,
                                   ),
                                 ),
                                 const Spacer(),
                                 Text(
-                                  'Rs ${NumberFormat('#,##0.##').format(dayTotal)}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? Colors.white70
-                                        : AppTheme.textSecondary,
+                                  '- \$ ${NumberFormat('#,##0.##').format(dayTotal)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.expenseRed,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -209,10 +223,9 @@ class _AllExpensesScreenState extends State<AllExpensesScreen> {
   }
 }
 
-class _MonthChip extends StatelessWidget {
-  final ExpenseFilter filter;
+class _FilterChip extends StatelessWidget {
   final ExpenseProvider provider;
-  const _MonthChip({required this.filter, required this.provider});
+  const _FilterChip({required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -232,19 +245,21 @@ class _MonthChip extends StatelessWidget {
               ))
           .toList(),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: AppTheme.accentGreen.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
-            Text(labels[filter]!,
+            Text(labels[provider.filter]!,
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w500)),
+                    color: AppTheme.accentGreen,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12)),
             const SizedBox(width: 4),
             const Icon(Icons.keyboard_arrow_down,
-                color: Colors.white, size: 16),
+                color: AppTheme.accentGreen, size: 16),
           ],
         ),
       ),
@@ -252,22 +267,23 @@ class _MonthChip extends StatelessWidget {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
+class _CatChip extends StatelessWidget {
   final String label;
   final String? emoji;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isDark;
 
-  const _CategoryChip({
+  const _CatChip({
     required this.label,
     this.emoji,
     required this.isSelected,
     required this.onTap,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -276,23 +292,25 @@ class _CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primaryGreen
+              ? AppTheme.accentGreen
               : (isDark ? AppTheme.darkCard : Colors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? AppTheme.primaryGreen
-                : (isDark ? Colors.white12 : Colors.grey.shade200),
+                ? AppTheme.accentGreen
+                : (isDark ? AppTheme.darkBorder : Colors.grey.shade200),
           ),
         ),
         child: Text(
           emoji != null ? '$emoji $label' : label,
           style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
             color: isSelected
-                ? Colors.white
-                : (isDark ? Colors.white70 : AppTheme.textPrimary),
+                ? const Color(0xFF1A1A1A)
+                : (isDark
+                    ? const Color(0xFF888888)
+                    : const Color(0xFF666666)),
           ),
         ),
       ),
@@ -301,28 +319,22 @@ class _CategoryChip extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
+  final Color subColor;
+  const _EmptyState({required this.subColor});
+
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.receipt_long_outlined,
-              size: 64,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white24
-                  : Colors.grey.shade300),
+          Icon(Icons.receipt_long_outlined, size: 64, color: subColor),
           const SizedBox(height: 16),
-          Text(
-            'No expenses found',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white38
-                  : Colors.grey.shade400,
-            ),
-          ),
+          Text('No expenses found',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: subColor)),
         ],
       ),
     );

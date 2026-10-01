@@ -15,7 +15,7 @@ class ExpenseProvider extends ChangeNotifier {
   ExpenseFilter _filter = ExpenseFilter.thisMonth;
   ExpenseCategory? _categoryFilter;
   String _searchQuery = '';
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode = ThemeMode.dark;
 
   List<Expense> get allExpenses => _allExpenses;
   bool get isLoading => _isLoading;

@@ -1,4 +1,4 @@
-import 'package:expense_tracker/providers/expense_provider.dart';
+﻿import 'package:expense_tracker/providers/expense_provider.dart';
 import 'package:expense_tracker/screens/analytics/analytics_screen.dart';
 import 'package:expense_tracker/screens/expenses/add_edit_expense_screen.dart';
 import 'package:expense_tracker/screens/expenses/all_expenses_screen.dart';
@@ -21,7 +21,7 @@ class _MainShellState extends State<MainShell> {
   final List<Widget> _screens = const [
     HomeScreen(),
     AllExpensesScreen(),
-    SizedBox(), // placeholder for FAB
+    SizedBox(),
     AnalyticsScreen(),
     SettingsScreen(),
   ];
@@ -37,74 +37,100 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? AppTheme.darkCard : Colors.white;
+    final inactiveColor =
+        isDark ? const Color(0xFF555570) : const Color(0xFFBBBBBB);
 
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex == 2 ? 0 : _currentIndex,
         children: _screens,
       ),
+
+      // ── Gradient FAB ─────────────────────────────────────────────
       floatingActionButton: Container(
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+          gradient: AppTheme.cardGradient,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.accentGreen.withOpacity(0.4),
-              blurRadius: 16,
+              color: AppTheme.primaryPurple.withOpacity(0.5),
+              blurRadius: 20,
               spreadRadius: 2,
             ),
           ],
         ),
-        child: FloatingActionButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddEditExpenseScreen()),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(30),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const AddEditExpenseScreen()),
+            ),
+            child: const Icon(Icons.add, color: Colors.white, size: 30),
           ),
-          backgroundColor: AppTheme.accentGreen,
-          foregroundColor: AppTheme.primaryGreen,
-          elevation: 0,
-          child: const Icon(Icons.add, size: 28, weight: 700),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      // ── Bottom navigation ─────────────────────────────────────────
       bottomNavigationBar: BottomAppBar(
-        color: isDark ? AppTheme.darkCard : Colors.white,
-        elevation: 8,
-        shadowColor: Colors.black12,
-        notchMargin: 8,
+        color: navBg,
+        elevation: 0,
+        notchMargin: 10,
         shape: const CircularNotchedRectangle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(
-              icon: Icons.home_outlined,
-              activeIcon: Icons.home_rounded,
-              label: 'Home',
-              isActive: _currentIndex == 0,
-              onTap: () => setState(() => _currentIndex = 0),
+        padding: EdgeInsets.zero,
+        child: Container(
+          decoration: BoxDecoration(
+            color: navBg,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppTheme.darkBorder : Colors.grey.shade100,
+              ),
             ),
-            _NavItem(
-              icon: Icons.receipt_long_outlined,
-              activeIcon: Icons.receipt_long,
-              label: 'All Expense',
-              isActive: _currentIndex == 1,
-              onTap: () => setState(() => _currentIndex = 1),
-            ),
-            const SizedBox(width: 40), // Space for FAB
-            _NavItem(
-              icon: Icons.bar_chart_outlined,
-              activeIcon: Icons.bar_chart,
-              label: 'Analytics',
-              isActive: _currentIndex == 3,
-              onTap: () => setState(() => _currentIndex = 3),
-            ),
-            _NavItem(
-              icon: Icons.settings_outlined,
-              activeIcon: Icons.settings,
-              label: 'Settings',
-              isActive: _currentIndex == 4,
-              onTap: () => setState(() => _currentIndex = 4),
-            ),
-          ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
+                label: 'Home',
+                isActive: _currentIndex == 0,
+                inactiveColor: inactiveColor,
+                onTap: () => setState(() => _currentIndex = 0),
+              ),
+              _NavItem(
+                icon: Icons.bar_chart_outlined,
+                activeIcon: Icons.bar_chart_rounded,
+                label: 'Stats',
+                isActive: _currentIndex == 3,
+                inactiveColor: inactiveColor,
+                onTap: () => setState(() => _currentIndex = 3),
+              ),
+              const SizedBox(width: 50),
+              _NavItem(
+                icon: Icons.receipt_long_outlined,
+                activeIcon: Icons.receipt_long_rounded,
+                label: 'Expenses',
+                isActive: _currentIndex == 1,
+                inactiveColor: inactiveColor,
+                onTap: () => setState(() => _currentIndex = 1),
+              ),
+              _NavItem(
+                icon: Icons.person_outline_rounded,
+                activeIcon: Icons.person_rounded,
+                label: 'Profile',
+                isActive: _currentIndex == 4,
+                inactiveColor: inactiveColor,
+                onTap: () => setState(() => _currentIndex = 4),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -116,6 +142,7 @@ class _NavItem extends StatelessWidget {
   final IconData activeIcon;
   final String label;
   final bool isActive;
+  final Color inactiveColor;
   final VoidCallback onTap;
 
   const _NavItem({
@@ -123,26 +150,32 @@ class _NavItem extends StatelessWidget {
     required this.activeIcon,
     required this.label,
     required this.isActive,
+    required this.inactiveColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              color: isActive
-                  ? AppTheme.primaryGreen
-                  : (isDark ? Colors.white38 : AppTheme.textLight),
-              size: 22,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                gradient: isActive ? AppTheme.cardGradient : null,
+              ),
+              child: Icon(
+                isActive ? activeIcon : icon,
+                color: isActive ? Colors.white : inactiveColor,
+                size: 22,
+              ),
             ),
             const SizedBox(height: 3),
             Text(
@@ -150,22 +183,10 @@ class _NavItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight:
-                    isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive
-                    ? AppTheme.primaryGreen
-                    : (isDark ? Colors.white38 : AppTheme.textLight),
+                    isActive ? FontWeight.w700 : FontWeight.w400,
+                color: isActive ? AppTheme.primaryPurple : inactiveColor,
               ),
             ),
-            if (isActive)
-              Container(
-                margin: const EdgeInsets.only(top: 3),
-                width: 4,
-                height: 4,
-                decoration: const BoxDecoration(
-                  color: AppTheme.primaryGreen,
-                  shape: BoxShape.circle,
-                ),
-              ),
           ],
         ),
       ),
